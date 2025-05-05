@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Music Albums</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+      color: white;
+    }
+    input, button {
+      margin: 5px;
+      padding: 8px;
+    }
+    .form-section {
+      margin-top: 30px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Musical Albums</h1>
+
+  <table id="albumTable">
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Artist</th>
+        <th>Album Name</th>
+        <th>Label</th>
+        <th>Year</th>
+        <th>Critic</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="form-section">
+    <h3>Add Album</h3>
+    <input type="number" id="position" placeholder="Position" />
+    <input type="text" id="artist" placeholder="Artist" />
+    <input type="text" id="album_name" placeholder="Album Name" />
+    <input type="text" id="label" placeholder="Label" />
+    <input type="number" id="year" placeholder="Year" />
+    <input type="text" id="critic" placeholder="Critic" />
+    <button onclick="addAlbum()">Add</button>
+  </div>
+
+  <div class="form-section">
+    <h3>Delete Album</h3>
+    <input type="number" id="delete_position" placeholder="Position to delete" />
+    <button onclick="deleteAlbum()">Delete</button>
+  </div>
+
+  <script>
+    async function loadAlbums() {
+      const res = await fetch("http://13.229.232.199:8000/albums");
+      const data = await res.json();
+      const tbody = document.querySelector("#albumTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(album => {
+        const row = document.createElement("tr");
+        album.forEach(item => {
+          const cell = document.createElement("td");
+          cell.textContent = item;
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+    }
+
+    async function addAlbum() {
+      const payload = {
+        position: Number(document.getElementById("position").value),
+        artist: document.getElementById("artist").value,
+        album_name: document.getElementById("album_name").value,
+        label: document.getElementById("label").value,
+        year: Number(document.getElementById("year").value),
+        critic: document.getElementById("critic").value
+      };
+
+      const res = await fetch("http://13.229.232.199:8000/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const msg = await res.json();
+      alert(msg.message);
+      loadAlbums();
+    }
+
+    async function deleteAlbum() {
+      const position = Number(document.getElementById("delete_position").value);
+
+      const res = await fetch("http://13.229.232.199:8000/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ position })
+      });
+
+      const msg = await res.json();
+      alert(msg.message);
+      loadAlbums();
+    }
+
+    // Initial load
+    loadAlbums();
+  </script>
+</body>
+</html>
