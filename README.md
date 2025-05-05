@@ -277,4 +277,3 @@ Try all buttons:
 
 ---
 
-Let me know if you want this as a downloadable README file or want to add screenshots or a badge!
