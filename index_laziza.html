@@ -72,7 +72,7 @@
 
   <script>
     async function loadAlbums() {
-      const res = await fetch("http://13.229.232.199:8000/albums");
+      const res = await fetch("http://54.169.220.20:8000/albums");
       const data = await res.json();
       const tbody = document.querySelector("#albumTable tbody");
       tbody.innerHTML = "";
@@ -97,7 +97,7 @@
         critic: document.getElementById("critic").value
       };
 
-      const res = await fetch("http://13.229.232.199:8000/add", {
+      const res = await fetch("http://54.169.220.20:8000/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -113,7 +113,7 @@
     async function deleteAlbum() {
       const position = Number(document.getElementById("delete_position").value);
 
-      const res = await fetch("http://13.229.232.199:8000/delete", {
+      const res = await fetch("http://54.169.220.20:8000/delete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
