@@ -106,7 +106,7 @@ sudo apt install python3-pip python3.10-venv -y
 ```bash
 mkdir webapp_laziza
 cd webapp_laziza
-python3 -m venv venv
+python3 -m myenv venv
 source myenv/bin/activate
 pip install flask flask-cors psycopg2-binary
 ```
@@ -176,7 +176,7 @@ python app.py
 ```
 
 Your API will be running on:
-**http\://\<EC2\_PUBLIC\_IP>:8000**
+**http://<EC2\_PUBLIC\_IP>:8000**
 
 ---
 
@@ -184,53 +184,136 @@ Your API will be running on:
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Musical Albums</title>
+  <meta charset="UTF-8" />
+  <title>Music Albums</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: center;
+    }
+    th {
+      background-color: #333;
+      color: white;
+    }
+    input, button {
+      margin: 5px;
+      padding: 8px;
+    }
+    .form-section {
+      margin-top: 30px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Musical Albums</h1>
+
+  <table id="albumTable">
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Artist</th>
+        <th>Album Name</th>
+        <th>Label</th>
+        <th>Year</th>
+        <th>Critic</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="form-section">
+    <h3>Add Album</h3>
+    <input type="number" id="position" placeholder="Position" />
+    <input type="text" id="artist" placeholder="Artist" />
+    <input type="text" id="album_name" placeholder="Album Name" />
+    <input type="text" id="label" placeholder="Label" />
+    <input type="number" id="year" placeholder="Year" />
+    <input type="text" id="critic" placeholder="Critic" />
+    <button onclick="addAlbum()">Add</button>
+  </div>
+
+  <div class="form-section">
+    <h3>Delete Album</h3>
+    <input type="number" id="delete_position" placeholder="Position to delete" />
+    <button onclick="deleteAlbum()">Delete</button>
+  </div>
+
   <script>
-    async function loadData() {
-      const res = await fetch("http://<EC2_Public_IP>:8000/albums");
+    async function loadAlbums() {
+      const res = await fetch("http://54.169.220.20:8000/albums");
       const data = await res.json();
-      let table = "<table border='1'><tr><th>Position</th><th>Artist</th><th>Album</th><th>Label</th><th>Year</th><th>Critic</th></tr>";
-      for (let row of data) {
-        table += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td><td>${row[4]}</td><td>${row[5]}</td></tr>`;
-      }
-      table += "</table>";
-      document.getElementById("result").innerHTML = table;
+      const tbody = document.querySelector("#albumTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(album => {
+        const row = document.createElement("tr");
+        album.forEach(item => {
+          const cell = document.createElement("td");
+          cell.textContent = item;
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
     }
 
     async function addAlbum() {
-      await fetch("http://<EC2_Public_IP>:8000/add", {
+      const payload = {
+        position: Number(document.getElementById("position").value),
+        artist: document.getElementById("artist").value,
+        album_name: document.getElementById("album_name").value,
+        label: document.getElementById("label").value,
+        year: Number(document.getElementById("year").value),
+        critic: document.getElementById("critic").value
+      };
+
+      const res = await fetch("http://54.169.220.20:8000/add", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          position: 999,
-          artist: "Laziza Test",
-          album_name: "Demo Album",
-          label: "Demo Label",
-          year: 2025,
-          critic: "Demo Critic"
-        })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
       });
-      loadData();
+
+      const msg = await res.json();
+      alert(msg.message);
+      loadAlbums();
     }
 
     async function deleteAlbum() {
-      await fetch("http://<EC2_Public_IP>:8000/delete", {
+      const position = Number(document.getElementById("delete_position").value);
+
+      const res = await fetch("http://54.169.220.20:8000/delete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ position: 999 })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ position })
       });
-      loadData();
+
+      const msg = await res.json();
+      alert(msg.message);
+      loadAlbums();
     }
+
+    // Initial load
+    loadAlbums();
   </script>
-</head>
-<body>
-  <h1>Musical Albums Dashboard</h1>
-  <button onclick="loadData()">Load Albums</button>
-  <button onclick="addAlbum()">Add Demo Album</button>
-  <button onclick="deleteAlbum()">Delete Demo Album</button>
-  <div id="result"></div>
 </body>
 </html>
 ```
@@ -241,26 +324,34 @@ Your API will be running on:
 
 1. Go to AWS Console → S3 → **Create Bucket**
 
-   * Name: `musical-dashboard-laziza`
+   * Name: `laziza3tbc`
    * Uncheck: “Block all public access”
 
 2. Enable **Static Website Hosting**
 
-   * Index document: `index.html`
+   * Index document: `index_laziza.html`
 
-3. Upload your `index.html`
+3. Upload your `index_laziza.html`
 
 4. Go to **Permissions** → **Bucket Policy** and add:
 
 ```json
 {
-  "Version":"2012-10-17",
-  "Statement":[{
-    "Effect":"Allow",
-    "Principal":"*",
-    "Action":"s3:GetObject",
-    "Resource":"arn:aws:s3:::musical-dashboard-laziza/*"
-  }]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::laziza3tbc"
+        },
+        {
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::laziza3tbc/*"
+        }
+    ]
 }
 ```
 
@@ -269,13 +360,12 @@ Your API will be running on:
 ## 11. Final Test
 
 Visit:
-**[http://musical-dashboard-laziza.s3-website-](http://musical-dashboard-laziza.s3-website-)<region>.amazonaws.com**
+**http://laziza3tbc.s3-website-ap-southeast-1.amazonaws.com**
 
 Try all buttons:
 
-* **Load Albums**
-* **Add Demo Album**
-* **Delete Demo Album**
+* **Add Album**
+* **Delete Album**
 
 ---
 
